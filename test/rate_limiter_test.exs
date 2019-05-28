@@ -74,4 +74,18 @@ defmodule RateLimiterTest do
       assert :ok = RateLimiter.hit(rate_limiter)
     end
   end
+
+  property "inspect bucket" do
+    check all scale <- integer(100..1000),
+              limit <- positive_integer(),
+              hits <- integer(1..limit) do
+      id = :crypto.strong_rand_bytes(10)
+      rate_limiter = RateLimiter.new(id, scale, limit)
+      assert :ok = RateLimiter.hit(rate_limiter, hits)
+      bucket = RateLimiter.inspect_bucket(id)
+      assert bucket == RateLimiter.inspect_bucket(rate_limiter)
+      assert bucket.hits == hits
+      assert bucket.created_at <= System.monotonic_time(:millisecond)
+    end
+  end
 end

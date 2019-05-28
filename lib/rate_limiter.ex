@@ -70,6 +70,17 @@ defmodule RateLimiter do
     |> hit(hits)
   end
 
+  def inspect_bucket(%RateLimiter{ref: ref}) do
+    %{
+      hits: :atomics.get(ref, 2),
+      created_at: :atomics.get(ref, 1)
+    }
+  end
+
+  def inspect_bucket(id) do
+    get(id) |> inspect_bucket()
+  end
+
   def reset(rate_limiter = %RateLimiter{ref: ref}) do
     :atomics.put(ref, 1, System.monotonic_time(:millisecond))
     :atomics.put(ref, 2, 0)
