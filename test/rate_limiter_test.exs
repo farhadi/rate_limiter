@@ -28,8 +28,8 @@ defmodule RateLimiterTest do
         assert :ok = RateLimiter.hit(rate_limiter)
       end
 
-      assert {:error, ms_to_reset} = RateLimiter.hit(rate_limiter)
-      assert ms_to_reset <= scale
+      assert {:error, eta} = RateLimiter.hit(rate_limiter)
+      assert eta <= scale
     end
   end
 
@@ -38,8 +38,8 @@ defmodule RateLimiterTest do
               limit <- positive_integer() do
       rate_limiter = RateLimiter.new(scale, limit)
       assert :ok = RateLimiter.hit(rate_limiter, limit)
-      assert {:error, ms_to_reset} = RateLimiter.hit(rate_limiter)
-      assert ms_to_reset <= scale
+      assert {:error, eta} = RateLimiter.hit(rate_limiter)
+      assert eta <= scale
     end
   end
 
@@ -62,6 +62,18 @@ defmodule RateLimiterTest do
       assert RateLimiter.get(id)
       assert {:error, _} = RateLimiter.hit(id, scale, limit)
       assert {:error, _} = RateLimiter.hit(id)
+    end
+  end
+
+  property "wait for rate limiter to be unblocked" do
+    check all scale <- integer(1..10),
+              limit <- positive_integer() do
+      rate_limiter = RateLimiter.new(scale, limit)
+      start = System.monotonic_time(:millisecond)
+      assert :ok = RateLimiter.wait(rate_limiter, limit)
+      assert System.monotonic_time(:millisecond) - start <= 1
+      assert :ok = RateLimiter.wait(rate_limiter)
+      assert System.monotonic_time(:millisecond) - start > scale
     end
   end
 

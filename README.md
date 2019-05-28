@@ -43,8 +43,8 @@ case RateLimiter.hit(rate_limiter, 2) do
   :ok ->
     # limit not reached yet
     
-  {:error, milliseconds_remaining}
-    # limit exceeded, you need to wait `milliseconds_remaining` until its free again
+  {:error, eta}
+    # limit exceeded, you need to wait `eta` milliseconds until its unblocked again
 end
 ```
 
