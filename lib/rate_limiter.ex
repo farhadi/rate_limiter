@@ -37,6 +37,10 @@ defmodule RateLimiter do
     end
   end
 
+  def get!(id) do
+    get(id) || raise "Rate limiter #{inspect(id)} not found"
+  end
+
   def hit(rate_limiter, hits \\ 1)
 
   def hit(rate_limiter = %RateLimiter{ref: ref, scale: scale, limit: limit}, hits) do
@@ -59,7 +63,7 @@ defmodule RateLimiter do
   end
 
   def hit(id, hits) do
-    get(id) |> hit(hits)
+    get!(id) |> hit(hits)
   end
 
   def hit(id, scale, limit, hits \\ 1) do
@@ -89,7 +93,7 @@ defmodule RateLimiter do
   end
 
   def inspect_bucket(id) do
-    get(id) |> inspect_bucket()
+    get!(id) |> inspect_bucket()
   end
 
   def reset(rate_limiter = %RateLimiter{ref: ref}) do

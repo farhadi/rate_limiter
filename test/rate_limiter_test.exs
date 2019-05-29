@@ -100,4 +100,10 @@ defmodule RateLimiterTest do
       assert bucket.created_at <= System.monotonic_time(:millisecond)
     end
   end
+
+  test "hiting non-existing rate limiter raises error" do
+    assert_raise RuntimeError, ~s'Rate limiter "non-existing" not found', fn ->
+      RateLimiter.hit("non-existing")
+    end
+  end
 end
