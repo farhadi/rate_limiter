@@ -74,6 +74,11 @@ defmodule RateLimiterTest do
       assert System.monotonic_time(:millisecond) - start <= 1
       assert :ok = RateLimiter.wait(rate_limiter)
       assert System.monotonic_time(:millisecond) - start > scale
+
+      id = :crypto.strong_rand_bytes(10)
+      assert :ok = RateLimiter.wait(id, scale, limit, limit)
+      assert RateLimiter.get(id)
+      assert :ok = RateLimiter.wait(id, scale, limit)
     end
   end
 

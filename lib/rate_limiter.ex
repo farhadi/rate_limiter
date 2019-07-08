@@ -85,6 +85,17 @@ defmodule RateLimiter do
     end
   end
 
+  def wait(id, scale, limit, hits \\ 1) do
+    case hit(id, scale, limit, hits) do
+      :ok ->
+        :ok
+
+      {:error, eta} ->
+        Process.sleep(eta)
+        wait(id, hits)
+    end
+  end
+
   def inspect_bucket(%RateLimiter{ref: ref}) do
     %{
       hits: :atomics.get(ref, 2),

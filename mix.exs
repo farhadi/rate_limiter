@@ -4,7 +4,7 @@ defmodule RateLimiter.MixProject do
   def project do
     [
       app: :rate_limiter,
-      version: "0.2.2",
+      version: "0.2.3",
       elixir: "~> 1.8",
       start_permanent: Mix.env() == :prod,
       description: description(),
@@ -24,7 +24,7 @@ defmodule RateLimiter.MixProject do
     [
       {:stream_data, "~> 0.4.3", only: :test},
       {:benchee, "~> 1.0", only: :dev},
-      {:ex_doc, "~> 0.19", only: :dev, runtime: false}
+      {:ex_doc, "~> 0.2", only: :dev, runtime: false}
     ]
   end
 

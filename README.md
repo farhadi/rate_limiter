@@ -61,3 +61,24 @@ You can also create and check the rate limiter in one go if it's not already cre
 ```elixir
 RateLimiter.hit("my_rate_limiter", 1000, 5)
 ```
+
+You can also use RateLimiter in a blocking way using `RateLimiter.wait` with the same API as `hit`,
+expect that when the limit is reached, the process will be blocked until ratelimiter is free for the next hit:
+
+```elixir
+rate_limiter = RateLimiter.new("my_rate_limiter", 1000, 5)
+RateLimiter.wait(rate_limiter)
+
+# or
+RateLimiter.new("my_rate_limiter", 1000, 5)
+RateLimiter.wait("my_rate_limiter")
+
+# or
+RateLimiter.wait("my_rate_limiter", 1000, 5)
+```
+
+`RateLimiter.wait` is suitable for use cases where there is a lot of processes racing for a single ratelimited resource.
+
+## License
+
+RateLimiter is released under MIT license.
