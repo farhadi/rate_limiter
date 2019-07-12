@@ -12,6 +12,7 @@ defmodule RateLimiter do
 
   def init() do
     :ets.new(@ets_table, [:named_table, :ordered_set, :public])
+    :ok
   end
 
   def new(scale, limit) do

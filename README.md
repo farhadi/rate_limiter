@@ -11,12 +11,12 @@ The package can be installed by adding `rate_limiter` to your list of dependenci
 ```elixir
 def deps do
   [
-    {:rate_limiter, "~> 0.1.0"}
+    {:rate_limiter, "~> 0.3.1"}
   ]
 end
 ```
 
-## Usage 
+## Usage
 
 First you need to create a new RateLimiter by calling `RateLimiter.new/2`
 For example to create a rate limiter with a limitaion of 5 hits per second:
@@ -63,10 +63,11 @@ RateLimiter.hit("my_rate_limiter", 1000, 5)
 ```
 
 You can also use RateLimiter in a blocking way using `RateLimiter.wait` with the same API as `hit`,
-expect that when the limit is reached, the process will be blocked until ratelimiter is free for the next hit:
+expect that when the limit is reached, the process will be blocked until ratelimiter is free for
+the next hit, and it always returns `:ok`:
 
 ```elixir
-rate_limiter = RateLimiter.new("my_rate_limiter", 1000, 5)
+rate_limiter = RateLimiter.new(1000, 5)
 RateLimiter.wait(rate_limiter)
 
 # or
