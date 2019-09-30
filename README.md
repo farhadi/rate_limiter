@@ -11,7 +11,7 @@ The package can be installed by adding `rate_limiter` to your list of dependenci
 ```elixir
 def deps do
   [
-    {:rate_limiter, "~> 0.3.1"}
+    {:rate_limiter, "~> 0.4.0"}
   ]
 end
 ```
