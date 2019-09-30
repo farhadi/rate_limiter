@@ -16,6 +16,10 @@ defmodule RateLimiterTest do
       rate_limiter = RateLimiter.new(id, scale, limit)
       assert %RateLimiter{id: ^id, scale: ^scale, limit: ^limit} = rate_limiter
       assert rate_limiter == RateLimiter.new(id, scale, limit)
+
+      rate_limiter = RateLimiter.new(id, scale + 1, limit + 1)
+      assert rate_limiter.scale == scale + 1
+      assert rate_limiter.limit == limit + 1
     end
   end
 
@@ -82,6 +86,25 @@ defmodule RateLimiterTest do
     end
   end
 
+  property "update rate limiter" do
+    check all scale <- integer(100..1000),
+              limit <- positive_integer() do
+      rate_limiter = RateLimiter.new(scale, limit)
+      rate_limiter = RateLimiter.update(rate_limiter, scale + 1, limit + 1)
+      assert rate_limiter.scale == scale + 1
+      assert rate_limiter.limit == limit + 1
+
+      id = :crypto.strong_rand_bytes(10)
+      rate_limiter = RateLimiter.new(id, scale, limit)
+      assert {:error, _} = RateLimiter.hit(rate_limiter, limit + 1)
+      rate_limiter = RateLimiter.update(rate_limiter, scale, limit + 10)
+      assert :ok = RateLimiter.hit(rate_limiter)
+
+      RateLimiter.update(id, scale + 1, limit)
+      assert scale + 1 == RateLimiter.get!(id).scale
+    end
+  end
+
   property "reset rate limiter" do
     check all scale <- integer(100..1000),
               limit <- positive_integer() do
@@ -89,6 +112,20 @@ defmodule RateLimiterTest do
       assert {:error, _} = RateLimiter.hit(rate_limiter, limit + 1)
       RateLimiter.reset(rate_limiter)
       assert :ok = RateLimiter.hit(rate_limiter)
+    end
+  end
+
+  property "delete rate limiter" do
+    check all scale <- integer(100..1000),
+              limit <- positive_integer() do
+      id = :crypto.strong_rand_bytes(10)
+      rate_limiter = RateLimiter.new(id, scale, limit)
+      RateLimiter.delete(rate_limiter)
+      assert nil == RateLimiter.get(id)
+
+      rate_limiter = RateLimiter.new(id, scale, limit)
+      RateLimiter.delete(id)
+      assert nil == RateLimiter.get(id)
     end
   end
 

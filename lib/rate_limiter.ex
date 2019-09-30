@@ -7,7 +7,7 @@ defmodule RateLimiter do
 
   @ets_table Application.get_env(:rate_limiter, :ets_table, :rate_limiters)
 
-  @enforce_keys [:limit, :scale]
+  @enforce_keys [:ref, :limit, :scale]
   defstruct [:id, :ref, :limit, :scale]
 
   def init() do
@@ -21,14 +21,41 @@ defmodule RateLimiter do
 
   def new(id, scale, limit) do
     case get(id) do
+      rate_limiter = %RateLimiter{scale: ^scale, limit: ^limit} ->
+        reset(rate_limiter)
+
       rate_limiter = %RateLimiter{} ->
         rate_limiter
+        |> update(scale, limit)
+        |> reset()
 
       nil ->
         rate_limiter = %RateLimiter{id: id, scale: scale, limit: limit, ref: atomics()}
         :ets.insert(@ets_table, {id, rate_limiter})
         rate_limiter
     end
+  end
+
+  def update(rate_limiter = %RateLimiter{id: nil}, scale, limit) do
+    %{rate_limiter | scale: scale, limit: limit}
+  end
+
+  def update(rate_limiter = %RateLimiter{id: id}, scale, limit) do
+    rate_limiter = %{rate_limiter | scale: scale, limit: limit}
+    :ets.insert(@ets_table, {id, rate_limiter})
+    rate_limiter
+  end
+
+  def update(id, scale, limit) do
+    get!(id) |> update(scale, limit)
+  end
+
+  def delete(%RateLimiter{id: id}) do
+    delete(id)
+  end
+
+  def delete(id) do
+    :ets.delete(@ets_table, id)
   end
 
   def get(id) do
@@ -46,7 +73,7 @@ defmodule RateLimiter do
 
   def hit(rate_limiter = %RateLimiter{ref: ref, scale: scale, limit: limit}, hits) do
     if :atomics.add_get(ref, 2, hits) > limit do
-      now = System.monotonic_time(:millisecond)
+      now = :erlang.monotonic_time(:millisecond)
       last_reset = :atomics.get(ref, 1)
 
       if last_reset + scale < now do
@@ -109,14 +136,14 @@ defmodule RateLimiter do
   end
 
   def reset(rate_limiter = %RateLimiter{ref: ref}) do
-    :atomics.put(ref, 1, System.monotonic_time(:millisecond))
+    :atomics.put(ref, 1, :erlang.monotonic_time(:millisecond))
     :atomics.put(ref, 2, 0)
     rate_limiter
   end
 
   defp atomics do
     ref = :atomics.new(2, signed: true)
-    :atomics.put(ref, 1, System.monotonic_time(:millisecond))
+    :atomics.put(ref, 1, :erlang.monotonic_time(:millisecond))
     ref
   end
 end
