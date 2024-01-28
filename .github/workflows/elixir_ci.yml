@@ -1,0 +1,86 @@
+name: Elixir CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+
+env:
+  COMMIT_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+  BRANCH: ${{ github.event_name == 'pull_request' && format('refs/heads/{0}', github.event.pull_request.head.ref) || github.ref }}
+
+jobs:
+  test:
+    # This condition ensures that this job will not run on pull requests in draft state
+    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-20.04, ubuntu-22.04]
+        otp: [22, 23, 24, 25, 26]
+        elixir: [1.12, 1.13, 1.14, 1.15, 1.16.0-rc.0]
+        exclude:
+          - otp: 26
+            elixir: 1.14
+          - otp: 26
+            elixir: 1.13
+          - otp: 26
+            elixir: 1.12
+          - otp: 25
+            elixir: 1.12
+          - otp: 23
+            elixir: 1.16.0-rc.0
+          - otp: 23
+            elixir: 1.15
+          - otp: 22
+            elixir: 1.16.0-rc.0
+          - otp: 22
+            elixir: 1.15
+          - otp: 22
+            elixir: 1.14
+          - otp: 26
+            os: ubuntu-20.04
+          - otp: 25
+            os: ubuntu-20.04
+          - otp: 24
+            os: ubuntu-20.04
+          - otp: 23
+            os: ubuntu-22.04
+          - otp: 22
+            os: ubuntu-22.04
+    runs-on: ${{matrix.os}}
+    name: test|OTP ${{matrix.otp}}|Elixir ${{matrix.elixir}}|${{matrix.os}}
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{env.BRANCH}}
+      - uses: erlef/setup-beam@v1.16.0
+        with:
+          otp-version: ${{matrix.otp}}
+          elixir-version: ${{matrix.elixir}}
+      - name: Disable compile warnings
+        run: echo "::remove-matcher owner=elixir-mixCompileWarning::"
+      - name: Retrieve mix dependencies cache
+        uses: actions/cache@v3
+        id: mix-cache
+        with:
+          path: |
+            deps
+            _build
+          key: test-${{ matrix.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-${{ hashFiles('**/mix.lock') }}
+          restore-keys: test-${{ matrix.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-
+      - name: Install Dependencies
+        if: steps.mix-cache.outputs.cache-hit != 'true'
+        run: |
+          mix deps.get
+          mix deps.compile
+      - name: Compile project
+        run: mix compile
+      - name: Compile project (:test)
+        run: MIX_ENV=test mix compile
+      - name: Run tests including property-based
+        run: mix test
