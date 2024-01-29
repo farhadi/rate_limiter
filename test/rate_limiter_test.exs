@@ -123,7 +123,7 @@ defmodule RateLimiterTest do
       RateLimiter.delete(rate_limiter)
       assert nil == RateLimiter.get(id)
 
-      rate_limiter = RateLimiter.new(id, scale, limit)
+      _rate_limiter = RateLimiter.new(id, scale, limit)
       RateLimiter.delete(id)
       assert nil == RateLimiter.get(id)
     end

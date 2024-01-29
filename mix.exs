@@ -21,9 +21,9 @@ defmodule RateLimiter.MixProject do
 
   defp deps do
     [
-      {:stream_data, "~> 0.4", only: [:dev, :test]},
-      {:benchee, "~> 1.0", only: :dev},
-      {:ex_doc, "~> 0.20", only: :dev, runtime: false}
+      {:stream_data, "~> 0.6", only: [:dev, :test]},
+      {:benchee, "~> 1.3", only: :dev},
+      {:ex_doc, "~> 0.31", only: :dev, runtime: false}
     ]
   end
 

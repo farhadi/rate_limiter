@@ -5,7 +5,7 @@ defmodule RateLimiter do
   As a result RateLimiter is ~20x faster than `ExRated` and ~80x faster than `Hammer`.
   """
 
-  @ets_table Application.get_env(:rate_limiter, :ets_table, :rate_limiters)
+  @ets_table Application.compile_env(:rate_limiter, :ets_table, :rate_limiters)
 
   @enforce_keys [:ref, :limit, :scale]
   defstruct [:id, :ref, :limit, :scale]
