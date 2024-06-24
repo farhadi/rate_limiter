@@ -58,7 +58,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{env.BRANCH}}
-      - uses: erlef/setup-beam@v1.17.5
+      - uses: erlef/setup-beam@v1.18.0
         with:
           otp-version: ${{matrix.otp}}
           elixir-version: ${{matrix.elixir}}
